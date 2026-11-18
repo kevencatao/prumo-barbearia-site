@@ -1073,12 +1073,15 @@ body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 /* =====================================================================
    DADOS DA BARBEARIA — troque aqui para usar com um cliente real.
    demo: true mostra a faixa de demonstração e não abre links externos.
+   whatsappReal: true abre o WhatsApp de verdade (agendamento e botões),
+   mesmo com demo: true; Instagram e Maps continuam só com o aviso.
    ===================================================================== */
 window.PRUMO = {
   demo: true,
+  whatsappReal: true,
   nome: 'Prumo',
-  whatsapp: '5571900000000',          // DDI + DDD + número, só dígitos
-  whatsappTexto: '(71) 9 0000-0000',
+  whatsapp: '5592991427604',          // DDI + DDD + número, só dígitos
+  whatsappTexto: '(92) 9 9142-7604',
   instagram: 'prumo.barbearia',
   ocupacao: .58,                       // fração dos horários ocupados na simulação da agenda
   unidades: [
@@ -1179,6 +1182,7 @@ window.PRUMO = {
     if (!D.demo) return;
     const a = e.target.closest('[data-wa],[data-ig],[data-maps]');
     if (!a) return;
+    if (a.dataset.wa !== undefined && D.whatsappReal) return; // segue o link do WhatsApp
     e.preventDefault();
     if (a.dataset.wa !== undefined) abrirModal('No site real, este botão abre o WhatsApp da barbearia com esta mensagem já escrita:', a.dataset.wa);
     else if (a.dataset.maps) abrirModal('No site real, este link abre o Google Maps com a rota até:', unidade(a.dataset.maps).endereco + '\nSalvador, BA');
@@ -1525,8 +1529,12 @@ window.PRUMO = {
     if (pend < 5) { irPasso(pend); return; }
     if (!$('#nome').value.trim()) { $('#erro').textContent = 'Escreva seu nome para enviar.'; $('#erro').hidden = false; $('#nome').focus(); return; }
     const msg = mensagem();
-    if (D.demo) abrirModal('No site real, este botão abre o WhatsApp da barbearia com o agendamento já escrito:', msg);
-    else window.location.href = waLink(msg);
+    if (D.demo && !D.whatsappReal) abrirModal('No site real, este botão abre o WhatsApp da barbearia com o agendamento já escrito:', msg);
+    else {
+      // nova aba (funciona também dentro do claude.ai); se o navegador bloquear, abre na mesma aba
+      const janela = window.open(waLink(msg), '_blank');
+      if (janela) janela.opener = null; else window.location.href = waLink(msg);
+    }
   });
 
   /* ---------- capa: barra de agendamento, próximo horário em placas ---------- */
